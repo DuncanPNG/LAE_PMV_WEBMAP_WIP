@@ -18,6 +18,19 @@
             padding: 0;
             margin: 0;
         }
+
+        /* PMV stop label styling (new) */
+        .pmv-stop-label div {
+            color: #323232;
+            font-size: 10pt;
+            font-family: 'Open Sans', sans-serif;
+            white-space: nowrap;
+            background: rgba(255,255,255,0.9);
+            padding: 2px 4px;
+            border-radius: 3px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+            pointer-events: none;
+        }
         </style>
         <title>LAE_PMV_MAP_WIP_20251213</title>
     </head>
@@ -45,7 +58,7 @@
             zoomControl:false, maxZoom:28, minZoom:1
         })
         var hash = new L.Hash(map);
-        map.attributionControl.setPrefix('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a> &middot; <a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a> &middot; <a href="https://qgis.org">QGIS</a>');
+        map.attributionControl.setPrefix('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a> &middot; <a href="https://leafletjs.com" title="A JS library for interactive map[...]
         var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
         // remove popup's row if "visible-with-data"
         function removeEmptyRowsFromPopupContent(content, feature) {
@@ -278,7 +291,7 @@
                         <td colspan="2">' + (feature.properties['shelter'] !== null ? autolinker.link(String(feature.properties['shelter']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
                     </tr>\
                     <tr>\
-                        <td colspan="2">' + (feature.properties['public_transport'] !== null ? autolinker.link(String(feature.properties['public_transport']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                        <td colspan="2">' + (feature.properties['public_transport'] !== null ? autolinker.link(String(feature.properties['public_transport']).replace(/'/g, '\'').toLocaleString()) : ''[...]
                     </tr>\
                     <tr>\
                         <td colspan="2">' + (feature.properties['operator'] !== null ? autolinker.link(String(feature.properties['operator']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
@@ -488,7 +501,7 @@
                         <td colspan="2">' + (feature.properties['shelter'] !== null ? autolinker.link(String(feature.properties['shelter']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
                     </tr>\
                     <tr>\
-                        <td colspan="2">' + (feature.properties['public_transport'] !== null ? autolinker.link(String(feature.properties['public_transport']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                        <td colspan="2">' + (feature.properties['public_transport'] !== null ? autolinker.link(String(feature.properties['public_transport']).replace(/'/g, '\'').toLocaleString()) : ''[...]
                     </tr>\
                     <tr>\
                         <td colspan="2">' + (feature.properties['operator'] !== null ? autolinker.link(String(feature.properties['operator']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
@@ -567,13 +580,45 @@
         });
         bounds_group.addLayer(layer_PMVStops_6);
         map.addLayer(layer_PMVStops_6);
+
+        // Create a separate layer group to hold permanent, toggleable labels for PMV stops
+        var layer_PMVStops_Labels = L.layerGroup();
+
+        // For each stop, create a small non-interactive marker using a divIcon and add it to the labels layer
+        layer_PMVStops_6.eachLayer(function(stopLayer) {
+            try {
+                var name = stopLayer.feature && stopLayer.feature.properties && stopLayer.feature.properties['name'] ? stopLayer.feature.properties['name'] : '';
+                if (!name) return;
+
+                var labelIcon = L.divIcon({
+                    className: 'pmv-stop-label',
+                    html: '<div>' + name + '</div>',
+                    iconSize: null
+                });
+
+                // place label at the same coordinates as the stop marker
+                var lblMarker = L.marker(stopLayer.getLatLng(), {
+                    icon: labelIcon,
+                    interactive: false,
+                    keyboard: false
+                });
+
+                layer_PMVStops_Labels.addLayer(lblMarker);
+            } catch (e) {
+                // safe guard: if a feature has no latlng or unexpected data, skip
+                console.warn('PMV stop label creation skipped for a feature', e);
+            }
+        });
+
         var overlaysTree = [
         {label: '<b>PUBLIC MOTOR VEHICLE (PMV) SYSTEM</b>',  selectAllCheckbox: true, children: [
-            {label: 'PMV Stops<br /><table><tr><td style="text-align: center;"><img src="legend/PMVStops_6_Interchange0.png" /></td><td>Interchange</td></tr><tr><td style="text-align: center;"><img src="legend/PMVStops_6_Urban1.png" /></td><td>Urban</td></tr></table>', layer: layer_PMVStops_6},
-            {label: 'PMV ROUTES<br /><table><tr><td style="text-align: center;"><img src="legend/PMVROUTES_5_02MainMarkettoBumayongviaKamkumung0.png" /></td><td>02 Main Market to Bumayong (via Kamkumung)</td></tr><tr><td style="text-align: center;"><img src="legend/PMVROUTES_5_03MainMarkettoSitumviaMalahung1.png" /></td><td>03 Main Market to Situm (via Malahung)</td></tr><tr><td style="text-align: center;"><img src="legend/PMVROUTES_5_100MainMarkettoNadzabAirportMarkhamValley2.png" /></td><td>100 Main Market to Nadzab Airport (Markham Valley)</td></tr><tr><td style="text-align: center;"><img src="legend/PMVROUTES_5_11MainMarkettoUnitechviaTaraka3.png" /></td><td>11 Main Market to Unitech (via Taraka)</td></tr><tr><td style="text-align: center;"><img src="legend/PMVROUTES_5_12MainMarketTentSitiviaButibamVillage4.png" /></td><td>12 Main Market Tent Siti (via Butibam Village)</td></tr><tr><td style="text-align: center;"><img src="legend/PMVROUTES_5_13MainMarkettoSpeedwayviaBoundaryRoad5.png" /></td><td>13 Main Market to Speedway (via Boundary Road)</td></tr><tr><td style="text-align: center;"><img src="legend/PMVROUTES_5_14MainMarkettoBumayongviaMalahang6.png" /></td><td>14 Main Market to Bumayong (via Malahang)</td></tr></table>', layer: layer_PMVROUTES_5},]},
+            {label: 'PMV Stops<br /><table><tr><td style="text-align: center;"><img src="legend/PMVStops_6_Interchange0.png" /></td><td>Interchange</td></tr><tr><td style="text-align: center;"><img sr[...]
+            {label: 'PMV ROUTES<br /><table><tr><td style="text-align: center;"><img src="legend/PMVROUTES_5_02MainMarkettoBumayongviaKamkumung0.png" /></td><td>02 Main Market to Bumayong (via Kamkumu[...]
+        // Add the labels layer to the PMV group so it can be toggled separately
+        ]},
         {label: '<b>WALKING CATCHMENTS</b>', collapsed: true, selectAllCheckbox: true, children: [
             {label: '<img src="legend/WALKINGCATCHMENTS800MROADS_4.png" /> WALKING CATCHMENTS (800M) - ROADS', layer: layer_WALKINGCATCHMENTS800MROADS_4},
-            {label: 'WALKING_CATCHMENTS - AREAS<br /><table><tr><td style="text-align: center;"><img src="legend/WALKING_CATCHMENTSAREAS_3_4000.png" /></td><td>400</td></tr><tr><td style="text-align: center;"><img src="legend/WALKING_CATCHMENTSAREAS_3_8001.png" /></td><td>800</td></tr></table>', layer: layer_WALKING_CATCHMENTSAREAS_3},]},
+            {label: 'WALKING_CATCHMENTS - AREAS<br /><table><tr><td style="text-align: center;"><img src="legend/WALKING_CATCHMENTSAREAS_3_4000.png" /></td><td>400</td></tr><tr><td style="text-align: [...]
             {label: '<img src="legend/LAE_DISTRICT_BOUNDARY_2.png" /> LAE_DISTRICT_BOUNDARY', layer: layer_LAE_DISTRICT_BOUNDARY_2},
             {label: "BASEMAP (ESRI GREY)", layer: layer_BASEMAPESRIGREY_1, radioGroup: 'bm' },
             {label: "BASEMAP (OSM)", layer: layer_BASEMAPOSM_0, radioGroup: 'bm' },]
@@ -586,31 +631,21 @@
             //expandAll: 'Expand all',
             collapsed: true,
         });
+
+        // Inject the labels layer into the already-declared overlaysTree PMV group so it appears in the tree control.
+        // overlaysTree[0] is the PMV group (as defined above); push the labels entry onto its children.
+        if (overlaysTree && overlaysTree[0] && overlaysTree[0].children) {
+            overlaysTree[0].children.push({label: 'PMV Stop Labels', layer: layer_PMVStops_Labels});
+        }
+
         lay.addTo(map);
         setBounds();
-        var i = 0;
-        layer_PMVStops_6.eachLayer(function(layer) {
-            var context = {
-                feature: layer.feature,
-                variables: {}
-            };
-            layer.bindTooltip((layer.feature.properties['name'] !== null?String('<div style="color: #323232; font-size: 10pt; font-family: \'Open Sans\', sans-serif;">' + layer.feature.properties['name']) + '</div>':''), {permanent: true, offset: [-0, -16], className: 'css_PMVStops_6'});
-            labels.push(layer);
-            totalMarkers += 1;
-              layer.added = true;
-              addLabel(layer, i);
-              i++;
-        });
-        resetLabels([layer_PMVStops_6]);
-        map.on("zoomend", function(){
-            resetLabels([layer_PMVStops_6]);
-        });
-        map.on("layeradd", function(){
-            resetLabels([layer_PMVStops_6]);
-        });
-        map.on("layerremove", function(){
-            resetLabels([layer_PMVStops_6]);
-        });
+
+        // Note:
+        // - PMV stop point layer remains as-is (layer_PMVStops_6).
+        // - PMV stop labels are in layer_PMVStops_Labels and are OFF by default (not added to map).
+        //   Users can toggle them on via the layer tree control (they are listed under the PMV group).
+
         </script>        
     </body>
 </html>
