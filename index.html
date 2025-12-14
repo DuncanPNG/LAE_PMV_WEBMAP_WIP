@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="en">
 <head>
@@ -35,7 +34,7 @@
 <script src="js/leaflet.js"></script>
 <script src="js/L.Control.Layers.Tree.min.js"></script>
 <script src="js/leaflet.rotatedMarker.js"></script>
-<script src="js/leaflet.pattern.js"></script>
+<script<script src="js/leaflet.pattern.js"></script>
 <script src="js/leaflet-hash.js"></script>
 <script src="js/Autolinker.min.js"></script>
 <script src="js/rbush.min.js"></script>
@@ -47,13 +46,27 @@
 <script src="data/WALKINGCATCHMENTS800MROADS_4.js"></script>
 <script src="data/PMVROUTES_5.js"></script>
 <script src="data/PMVStops_6.js"></script>
-<script>
-var map = L.map('map', { zoomControl:false, maxZoom:28, minZoom:1 });
+
+var map = L.map('map', {
+    zoomControl:false, maxZoom:28, minZoom:1
+});
 var hash = new L.Hash(map);
-map.attributionControl.setPrefix('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a> · <a href="https://leafletjs.com">Leaflet</a> · <a href="https://qgis.org">QGIS</a>');
+map.attributionControl.setPrefix('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a> · <a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a> · <a href="https://qgis.org">QGIS</a>');
 var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
 
-// Base layers
+// Title control
+var title = new L.Control({'position':'topright'});
+title.onAdd = function (map) {
+    this._div = L.DomUtil.create('div', 'info');
+    this.update();
+    return this._div;
+};
+title.update = function () {
+    this._div.innerHTML = '<h2>LAE_PMV_MAP_WIP_20251213</h2>';
+};
+title.addTo(map);
+
+// Base map layers
 map.createPane('pane_BASEMAPESRIGREY_1');
 map.getPane('pane_BASEMAPESRIGREY_1').style.zIndex = 401;
 var layer_BASEMAPESRIGREY_1 = L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
@@ -61,12 +74,20 @@ var layer_BASEMAPESRIGREY_1 = L.tileLayer('https://services.arcgisonline.com/Arc
 });
 map.addLayer(layer_BASEMAPESRIGREY_1);
 
-// Existing PMV Stops layer
+// PMV Stops layer with popups
 map.createPane('pane_PMVStops_6');
 map.getPane('pane_PMVStops_6').style.zIndex = 406;
-var layer_PMVStops_6 = L.geoJSON(json_PMVStops_6, {
+var layer_PMVStops_6 = new L.geoJson(json_PMVStops_6, {
+    attribution: '',
+    interactive: true,
+    dataVar: 'json_PMVStops_6',
+    layerName: 'layer_PMVStops_6',
     pane: 'pane_PMVStops_6',
-    pointToLayer: function(feature, latlng) {
+    onEachFeature: function(feature, layer) {
+        var popupContent = '<table><tr><td>' + (feature.properties['name'] || '') + '</td></tr></table>';
+        layer.bindPopup(popupContent);
+    },
+    pointToLayer: function (feature, latlng) {
         return L.circleMarker(latlng, {
             radius: feature.properties.public_transport === 'Interchange' ? 8 : 4,
             color: '#000', weight: 2, fillColor: '#fff', fillOpacity: 1
@@ -75,28 +96,58 @@ var layer_PMVStops_6 = L.geoJSON(json_PMVStops_6, {
 });
 map.addLayer(layer_PMVStops_6);
 
-// ✅ NEW: Separate PMV Stop Labels layer
 var layer_PMVStopLabels = L.geoJSON(json_PMVStops_6, {
     pointToLayer: function(feature, latlng) {
         return L.marker(latlng, {
             icon: L.divIcon({
                 className: 'pmv-label',
-                html: feature.properties.name ? feature.properties.name : '',
+                               html: feature.properties.name ? feature.properties.name : '',
                 iconSize: [100, 20]
             })
         });
     }
 });
-map.addLayer(layer_PMVStopLabels);
 
-// ✅ Layer Control with Labels
+// Other layers (routes, catchments, district boundary)
+var layer_PMVROUTES_5 = new L.geoJson(json_PMVROUTES_5, {
+    style: function(feature) {
+        return {color: '#0066cc', weight: 4};
+    },
+    onEachFeature: function(feature, layer) {
+        var popupContent = '<table><tr><td>' + (feature.properties['Route Name'] || '') + '</td></tr></table>';
+        layer.bindPopup(popupContent);
+    }
+});
+map.addLayer(layer_PMVROUTES_5);
+
+var layer_WALKING_CATCHMENTSAREAS_3 = new L.geoJson(json_WALKING_CATCHMENTSAREAS_3, {
+    style: {color: '#ff0000', weight: 2, fillOpacity: 0.1}
+});
+map.addLayer(layer_WALKING_CATCHMENTSAREAS_3);
+
+var layer_WALKINGCATCHMENTS800MROADS_4 = new L.geoJson(json_WALKINGCATCHMENTS800MROADS_4, {
+    style: {color: '#ff6600', weight: 1}
+});
+map.addLayer(layer_WALKINGCATCHMENTS800MROADS_4);
+
+var layer_LAE_DISTRICT_BOUNDARY_2 = new L.geoJson(json_LAE_DISTRICT_BOUNDARY_2, {
+    style: {color: '#cc00cc', weight: 3, dashArray: '10,5'}
+});
+map.addLayer(layer_LAE_DISTRICT_BOUNDARY_2);
+
 var overlaysTree = [
     {label: '<b>PUBLIC MOTOR VEHICLE (PMV) SYSTEM</b>', selectAllCheckbox: true, children: [
         {label: 'PMV Stops', layer: layer_PMVStops_6},
-        {label: 'PMV Stop Labels', layer: layer_PMVStopLabels}
-    ]}
+        {label: 'PMV Stop Labels', layer: layer_PMVStopLabels},
+        {label: 'PMV Routes', layer: layer_PMVROUTES_5}
+    ]},
+       {label: '<b>WALKING CATCHMENTS</b>', children: [
+        {label: 'Catchment Areas', layer: layer_WALKING_CATCHMENTSAREAS_3},
+        {label: 'Catchment Roads', layer: layer_WALKINGCATCHMENTS800MROADS_4}
+    ]},
+    {label: 'District Boundary', layer: layer_LAE_DISTRICT_BOUNDARY_2}
 ];
 var lay = L.control.layers.tree(null, overlaysTree, {collapsed: true});
 lay.addTo(map);
 </script>
-</</body>
+</body>
