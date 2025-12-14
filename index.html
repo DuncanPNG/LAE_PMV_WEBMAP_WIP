@@ -18,6 +18,14 @@
             padding: 0;
             margin: 0;
         }
+			
+.pmv-label {
+    font-size: 10pt;
+    font-family: 'Open Sans', sans-serif;
+    color: #323232;
+    text    text-align: center;
+    white-space: nowrap;
+
         </style>
         <title>LAE_PMV_MAP_WIP_20251213</title>
     </head>
@@ -547,6 +555,29 @@
                     break;
             }
         }
+			
+<!-- Create a separate label layer -->
+<script>
+var layer_PMVStopLabels = L.geoJSON(json_PMVStops_6, {
+    pointToLayer: function (feature, latlng) {
+        return L.marker(latlng, {
+            icon: L.divIcon({
+                className: 'pmv-label',
+                html: feature.properties.name ? feature.properties.name : '',
+                iconSize: [100, 20] // adjust width/height as needed
+            })
+        });
+    }
+});
+
+// Add to map by default (optional)
+map.addLayer(layer_PMVStopLabels);
+
+//// Add to layer control
+overlaysTree[0].children.push({
+    label: 'PMV Stop Labels',
+    layer: layer_PMVStopLabels
+});
         map.createPane('pane_PMVStops_6');
         map.getPane('pane_PMVStops_6').style.zIndex = 406;
         map.getPane('pane_PMVStops_6').style['mix-blend-mode'] = 'normal';
