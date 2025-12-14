@@ -18,7 +18,6 @@
             padding: 0;
             margin: 0;
         }
-        /* PMV stop label styling */
         .pmv-stop-label div {
             color: #323232;
             font-size: 10pt;
@@ -57,12 +56,13 @@
 <script src="data/PMVStops_6.js"></script>
 
 <script>
+// Initialize map
 var map = L.map('map', { zoomControl:false, maxZoom:28, minZoom:1 });
 var hash = new L.Hash(map);
-map.attributionControl.setPrefix('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a> &middot; <a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a>');
+map.attributionControl.setPrefix('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a> &middot; <a href="https://leafletjs.com" target="_blank">Leaflet</a>');
 var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
 
-// Utility functions for popups
+// Utility functions
 function removeEmptyRowsFromPopupContent(content, feature) {
     var tempDiv = document.createElement('div');
     tempDiv.innerHTML = content;
@@ -145,25 +145,123 @@ var layer_BASEMAPESRIGREY_1 = L.tileLayer('https://services.arcgisonline.com/Arc
 });
 map.addLayer(layer_BASEMAPESRIGREY_1);
 
-// (All your popups, styles, and layers for LAE_DISTRICT_BOUNDARY_2, WALKING_CATCHMENTSAREAS_3, WALKINGCATCHMENTS800MROADS_4, PMVROUTES_5, PMVStops_6 go here — unchanged from your original script but now properly closed and formatted.)
+// ----------------------
+// LAYERS AND POPUPS
+// ----------------------
 
-// PMV Stop Labels Layer
-var layer_PMVStops_Labels = L.layerGroup();
-layer_PMVStops_6.eachLayer(function(stopLayer) {
-    try {
-        var name = stopLayer.feature && stopLayer.feature.properties && stopLayer.feature.properties['name'] ? stopLayer.feature.properties['name'] : '';
-        if (!name) return;
-        var labelIcon = L.divIcon({ className: 'pmv-stop-label', html: '<div>' + name + '</div>', iconSize: null });
-        var lblMarker = L.marker(stopLayer.getLatLng(), { icon: labelIcon, interactive: false, keyboard: false });
-        layer_PMVStops_Labels.addLayer(lblMarker);
-    } catch (e) { console.warn('PMV stop label creation skipped', e); }
+// LAE_DISTRICT_BOUNDARY
+function pop_LAE_DISTRICT_BOUNDARY_2(feature, layer) {
+    var popupContent = '<table><tr><td colspan="2">' + (feature.properties['DISTNAME'] || '') + '</td></tr></table>';
+    var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+    layer.on('popupopen', function(e) { addClassToPopupIfMedia(content, e.popup); });
+    layer.bindPopup(content, { maxHeight: 400 });
+}
+function style_LAE_DISTRICT_BOUNDARY_2_0() {
+    return { pane: 'pane_LAE_DISTRICT_BOUNDARY_2', opacity: 1, color: 'rgba(206,40,204,1.0)', dashArray: '20,10', weight: 5, fillOpacity: 0, interactive: false };
+}
+map.createPane('pane_LAE_DISTRICT_BOUNDARY_2');
+map.getPane('pane_LAE_DISTRICT_BOUNDARY_2').style.zIndex = 402;
+var layer_LAE_DISTRICT_BOUNDARY_2 = new L.geoJson(json_LAE_DISTRICT_BOUNDARY_2, {
+    attribution: '', interactive: false, dataVar: 'json_LAE_DISTRICT_BOUNDARY_2',
+    layerName: 'layer_LAE_DISTRICT_BOUNDARY_2', pane: 'pane_LAE_DISTRICT_BOUNDARY_2',
+    onEachFeature: pop_LAE_DISTRICT_BOUNDARY_2, style: style_LAE_DISTRICT_BOUNDARY_2_0
+});
+bounds_group.addLayer(layer_LAE_DISTRICT_BOUNDARY_2);
+map.addLayer(layer_LAE_DISTRICT_BOUNDARY_2);
+
+// WALKING_CATCHMENTSAREAS
+function pop_WALKING_CATCHMENTSAREAS_3(feature, layer) {
+    var popupContent = '<table><tr><td colspan="2">' + (feature.properties['cost_level'] || '') + '</td></tr></table>';
+    var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+    layer.on('popupopen', function(e) { addClassToPopupIfMedia(content, e.popup); });
+    layer.bindPopup(content, { maxHeight: 400 });
+}
+function style_WALKING_CATCHMENTSAREAS_3_0(feature) {
+    if (feature.properties['cost_level'] == '400.0') {
+        return { pane: 'pane_WALKING_CATCHMENTSAREAS_3', opacity: 1, color: 'rgba(227,26,28,1.0)', dashArray: '4,8', weight: 4, fillOpacity: 0, interactive: false };
+    } else {
+        return { pane: 'pane_WALKING_CATCHMENTSAREAS_3', stroke: false, fill: true, fillOpacity: 1, fillColor: 'rgba(255,255,255,0.08)', interactive: false };
+    }
+}
+map.createPane('pane_WALKING_CATCHMENTSAREAS_3');
+map.getPane('pane_WALKING_CATCHMENTSAREAS_3').style.zIndex = 403;
+var layer_WALKING_CATCHMENTSAREAS_3 = new L.geoJson(json_WALKING_CATCHMENTSAREAS_3, {
+    attribution: '', interactive: false, dataVar: 'json_WALKING_CATCHMENTSAREAS_3',
+    layerName: 'layer_WALKING_CATCHMENTSAREAS_3', pane: 'pane_WALKING_CATCHMENTSAREAS_3',
+    onEachFeature: pop_WALKING_CATCHMENTSAREAS_3, style: style_WALKING_CATCHMENTSAREAS_3_0
+});
+bounds_group.addLayer(layer_WALKING_CATCHMENTSAREAS_3);
+
+// WALKINGCATCHMENTS800MROADS
+function pop_WALKINGCATCHMENTS800MROADS_4(feature, layer) {
+    var popupContent = '<table><tr><td colspan="2">' + (feature.properties['name'] || '') + '</td></tr></table>';
+    var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+    layer.on('popupopen', function(e) { addClassToPopupIfMedia(content, e.popup); });
+    layer.bindPopup(content, { maxHeight: 400 });
+}
+function style_WALKINGCATCHMENTS800MROADS_4_0() {
+    return { pane: 'pane_WALKINGCATCHMENTS800MROADS_4', opacity: 1, color: 'rgba(227,26,28,1.0)', weight: 1, fillOpacity: 0, interactive: false };
+}
+map.createPane('pane_WALKINGCATCHMENTS800MROADS_4');
+map.getPane('pane_WALKINGCATCHMENTS800MROADS_4').style.zIndex = 404;
+var layer_WALKINGCATCHMENTS800MROADS_4 = new L.geoJson(json_WALKINGCATCHMENTS800MROADS_4, {
+    attribution: '', interactive: false, dataVar: 'json_WALKINGCATCHMENTS800MROADS_4',
+    layerName: 'layer_WALKINGCATCHMENTS800MROADS_4', pane: 'pane_WALKINGCATCHMENTS800MROADS_4',
+    onEachFeature: pop_WALKINGCATCHMENTS800MROADS_4, style: style_WALKINGCATCHMENTS800MROADS_4_0
+});
+bounds_group.addLayer(layer_WALKINGCATCHMENTS800MROADS_4);
+
+// PMV ROUTES
+function pop_PMVROUTES_5(feature, layer) {
+    var popupContent = '<table><tr><td colspan="2">' + (feature.properties['Route Name'] || '') + '</td></tr></table>';
+    var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+    layer.on('popupopen', function(e) { addClassToPopupIfMedia(content, e.popup); });
+    layer.bindPopup(content, { maxHeight: 400 });
+}
+function style_PMVROUTES_5_0(feature) {
+    return { pane: 'pane_PMVROUTES_5', opacity: 1, color: 'rgba(6,128,56,1.0)', weight: 4, fillOpacity: 0, interactive: false };
+}
+map.createPane('pane_PMVROUTES_5');
+map.getPane('pane_PMVROUTES_5').style.zIndex = 405;
+var layer_PMVROUTES_5 = new L.geoJson(json_PMVROUTES_5, {
+    attribution: '', interactive: false, dataVar: 'json_PMVROUTES_5',
+    layerName: 'layer_PMVROUTES_5', pane: 'pane_PMVROUTES_5',
+    onEachFeature: pop_PMVROUTES_5, style: style_PMVROUTES_5_0
+});
+bounds_group.addLayer(layer_PMVROUTES_5);
+map.addLayer(layer_PMVROUTES_5);
+
+// PMV Stops
+function pop_PMVStops_6(feature, layer) {
+    var popupContent = '<table><tr><td colspan="2">' + (feature.properties['name'] || '') + '</td></tr></table>';
+    var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+    layer.on('popupopen', function(e) { addClassToPopupIfMedia(content, e.popup); });
+    layer.bindPopup(content, { maxHeight: 400 });
+}
+function style_PMVStops_6_0(feature) {
+    return { pane: 'pane_PMVStops_6', radius: 4, opacity: 1, color: '#000', weight: 2, fill: true, fillOpacity: 1, fillColor: '#fff', interactive: false };
+}
+map.createPane('pane_PMVStops_6');
+map.getPane('pane_PMVStops_6').style.zIndex = 406;
+var layer_PMVStops_6 = new L.geoJson(json_PMVStops_6, {
+    attribution: '', interactive: false, dataVar: 'json_PMVStops_6',
+    layerName: 'layer_PMVStops_6', pane: 'pane_PMVStops_6',
+    onEachFeature: pop_PMVStops_6,
+    pointToLayer: function (feature, latlng) { return L.circleMarker(latlng, style_PMVStops_6_0(feature)); }
+});
+bounds_group.addLayer(layer_PMVStops_6);
+map.addLayer(layer_PMVStops_6);
+
+// Labels for PMV Stops
+var layer_PMVStops_Labels = L.layerGroupvar layer_PMVStops_Labels = L.layerGroupddLayer(lblMarker);
 });
 
-// Layer tree
+// Layer tree control
 var overlaysTree = [
     {label: '<b>PUBLIC MOTOR VEHICLE (PMV) SYSTEM</b>', selectAllCheckbox: true, children: [
         {label: 'PMV Stops', layer: layer_PMVStops_6},
-        {label: 'PMV ROUTES', layer: layer_PMVROUTES_5}
+        {label: 'PMV ROUTES', layer: layer_PMVROUTES_5},
+        {label: 'PMV Stop Labels', layer: layer_PMVStops_Labels}
     ]},
     {label: '<b>WALKING CATCHMENTS</b>', collapsed: true, selectAllCheckbox: true, children: [
         {label: 'WALKING CATCHMENTS (800M) - ROADS', layer: layer_WALKINGCATCHMENTS800MROADS_4},
@@ -173,9 +271,7 @@ var overlaysTree = [
         {label: "BASEMAP (OSM)", layer: layer_BASEMAPOSM_0, radioGroup: 'bm'}
     ]}
 ];
-overlaysTree[0].children.push({label: 'PMV Stop Labels', layer: layer_PMVStops_Labels});
 L.control.layers.tree(null, overlaysTree, {collapsed: true}).addTo(map);
 setBounds();
 </script>
 </body>
-</
