@@ -220,7 +220,7 @@
                         <td colspan="2">' + (feature.properties['id'] !== null ? autolinker.link(String(feature.properties['id']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
                     </tr>\
                     <tr>\
-                        <td colspan="2">' + (feature.properties['cost_level'] !== null ? autolinker.link(String(feature.properties['cost_level']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                        <td colspan="2">' + (feature.properties['cost_level'] !== null ? autolinker.link(String(feature.properties['cost_level']).replace(/'/g, '\'').toLocaleString()) : '') + '</[...]
                     </tr>\
                 </table>';
             var content = removeEmptyRowsFromPopupContent(popupContent, feature);
@@ -291,7 +291,7 @@
                         <td colspan="2">' + (feature.properties['shelter'] !== null ? autolinker.link(String(feature.properties['shelter']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
                     </tr>\
                     <tr>\
-                        <td colspan="2">' + (feature.properties['public_transport'] !== null ? autolinker.link(String(feature.properties['public_transport']).replace(/'/g, '\'').toLocaleString()) : ''[...]
+                        <td colspan="2">' + (feature.properties['public_transport'] !== null ? autolinker.link(String(feature.properties['public_transport']).replace(/'/g, '\'').toLocaleString())[...]
                     </tr>\
                     <tr>\
                         <td colspan="2">' + (feature.properties['operator'] !== null ? autolinker.link(String(feature.properties['operator']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
@@ -501,7 +501,7 @@
                         <td colspan="2">' + (feature.properties['shelter'] !== null ? autolinker.link(String(feature.properties['shelter']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
                     </tr>\
                     <tr>\
-                        <td colspan="2">' + (feature.properties['public_transport'] !== null ? autolinker.link(String(feature.properties['public_transport']).replace(/'/g, '\'').toLocaleString()) : ''[...]
+                        <td colspan="2">' + (feature.properties['public_transport'] !== null ? autolinker.link(String(feature.properties['public_transport']).replace(/'/g, '\'').toLocaleString())[...]
                     </tr>\
                     <tr>\
                         <td colspan="2">' + (feature.properties['operator'] !== null ? autolinker.link(String(feature.properties['operator']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
@@ -612,16 +612,23 @@
 
         var overlaysTree = [
         {label: '<b>PUBLIC MOTOR VEHICLE (PMV) SYSTEM</b>',  selectAllCheckbox: true, children: [
-            {label: 'PMV Stops<br /><table><tr><td style="text-align: center;"><img src="legend/PMVStops_6_Interchange0.png" /></td><td>Interchange</td></tr><tr><td style="text-align: center;"><img sr[...]
-            {label: 'PMV ROUTES<br /><table><tr><td style="text-align: center;"><img src="legend/PMVROUTES_5_02MainMarkettoBumayongviaKamkumung0.png" /></td><td>02 Main Market to Bumayong (via Kamkumu[...]
-        // Add the labels layer to the PMV group so it can be toggled separately
+            {label: 'PMV Stops<br /><table><tr><td style="text-align: center;"><img src="legend/PMVStops_6_Interchange0.png" /></td><td>Interchange</td></tr><tr><td style="text-align: center;"><img src="legend/PMVStops_6_Urban1.png" /></td><td>Urban</td></tr></table>', layer: layer_PMVStops_6},
+            {label: 'PMV ROUTES<br /><table><tr><td style="text-align: center;"><img src="legend/PMVROUTES_5_02MainMarkettoBumayongviaKamkumung0.png" /></td><td>02 Main Market to Bumayong (via Kamkumung)</td></tr></table>', layer: layer_PMVROUTES_5}
         ]},
         {label: '<b>WALKING CATCHMENTS</b>', collapsed: true, selectAllCheckbox: true, children: [
             {label: '<img src="legend/WALKINGCATCHMENTS800MROADS_4.png" /> WALKING CATCHMENTS (800M) - ROADS', layer: layer_WALKINGCATCHMENTS800MROADS_4},
-            {label: 'WALKING_CATCHMENTS - AREAS<br /><table><tr><td style="text-align: center;"><img src="legend/WALKING_CATCHMENTSAREAS_3_4000.png" /></td><td>400</td></tr><tr><td style="text-align: [...]
+            {label: 'WALKING_CATCHMENTS - AREAS<br /><table><tr><td style="text-align: center;"><img src="legend/WALKING_CATCHMENTSAREAS_3_4000.png" /></td><td>400</td></tr><tr><td style="text-align: center;"><img src="legend/WALKING_CATCHMENTSAREAS_3_8000.png" /></td><td>800</td></tr></table>', layer: layer_WALKING_CATCHMENTSAREAS_3},
             {label: '<img src="legend/LAE_DISTRICT_BOUNDARY_2.png" /> LAE_DISTRICT_BOUNDARY', layer: layer_LAE_DISTRICT_BOUNDARY_2},
             {label: "BASEMAP (ESRI GREY)", layer: layer_BASEMAPESRIGREY_1, radioGroup: 'bm' },
-            {label: "BASEMAP (OSM)", layer: layer_BASEMAPOSM_0, radioGroup: 'bm' },]
+            {label: "BASEMAP (OSM)", layer: layer_BASEMAPOSM_0, radioGroup: 'bm' }
+        ]
+        ];
+
+        // Inject the labels layer into the PMV group so it appears in the tree control (do this before creating the control)
+        if (overlaysTree && overlaysTree[0] && overlaysTree[0].children) {
+            overlaysTree[0].children.push({label: 'PMV Stop Labels', layer: layer_PMVStops_Labels});
+        }
+
         var lay = L.control.layers.tree(null, overlaysTree,{
             //namedToggle: true,
             //selectorBack: false,
@@ -631,12 +638,6 @@
             //expandAll: 'Expand all',
             collapsed: true,
         });
-
-        // Inject the labels layer into the already-declared overlaysTree PMV group so it appears in the tree control.
-        // overlaysTree[0] is the PMV group (as defined above); push the labels entry onto its children.
-        if (overlaysTree && overlaysTree[0] && overlaysTree[0].children) {
-            overlaysTree[0].children.push({label: 'PMV Stop Labels', layer: layer_PMVStops_Labels});
-        }
 
         lay.addTo(map);
         setBounds();
